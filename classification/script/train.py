@@ -11,7 +11,7 @@ import pandas as pd
 from sklearn.model_selection import train_test_split
 import torch.optim as optim
 import sys
-sys.path.append(os.path.join('./', '..', '..', '..'))
+sys.path.append(os.path.join('./', '..', '..'))
 from classification.script.models import LSTMClassifier
 
 
@@ -63,6 +63,7 @@ def main():
         'movie-enter': 0, 'it-life-hack': 1, 'kaden-channel': 2, 'topic-news': 3, 'livedoor-homme': 4, 'peachy': 5,
         'sports-watch': 6, 'dokujo-tsushin': 7, 'smax': 8
     }
+    device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 
     if not os.path.exists(dataset_pickle_file):
         datasets = make_dataset(data_dir)
@@ -89,7 +90,7 @@ def main():
 
     train_data, test_data = train_test_split(datasets, train_size=0.7)
 
-    model = LSTMClassifier(embedding_dim, hidden_dim, vocab_size, output_size)
+    model = LSTMClassifier(embedding_dim, hidden_dim, vocab_size, output_size).to(device)
     criterion = nn.NLLLoss()
     optimizer = optim.SGD(model.parameters(), lr=0.01)
 
@@ -103,9 +104,9 @@ def main():
 
         for title, cat in zip(train_data['title'], train_data['category']):
             model.zero_grad()
-            inputs = sentence2index(title, word2index)
-            outputs = model(inputs)
-            gt = torch.tensor([category2index[cat]], dtype=torch.long)
+            inputs = sentence2index(title, word2index).to(device)
+            outputs = model(inputs).to(device)
+            gt = torch.tensor([category2index[cat]], dtype=torch.long).to(device)
 
             _, predict = torch.max(outputs, 1)
             if gt == predict:
@@ -124,9 +125,9 @@ def main():
         test_correct_num = 0
         with torch.no_grad():
             for title, cat in zip(test_data['title'], test_data['category']):
-                inputs = sentence2index(title, word2index)
-                outputs = model(inputs)
-                gt = torch.tensor([category2index[cat]], dtype=torch.long)
+                inputs = sentence2index(title, word2index).to(device)
+                outputs = model(inputs).to(device)
+                gt = torch.tensor([category2index[cat]], dtype=torch.long).to(device)
 
                 _, predict = torch.max(outputs, 1)
                 if gt == predict:
