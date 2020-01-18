@@ -8,9 +8,11 @@ from torch import nn
 import pickle
 import linecache
 import pandas as pd
-from script.models import LSTMClassifier
 from sklearn.model_selection import train_test_split
 import torch.optim as optim
+import sys
+sys.path.append(os.path.join('./', '..', '..', '..'))
+from classification.script.models import LSTMClassifier
 
 
 def make_dataset(data_dir):
